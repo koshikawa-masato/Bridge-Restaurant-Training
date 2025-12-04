@@ -192,7 +192,7 @@
 
 ### 8. Why Now? / なぜ今か
 
-<img src="screenshot/diagrams/whynow.png" width="500">
+<img src="screenshot/diagrams/whynow.png" width="300">
 
 ---
 
