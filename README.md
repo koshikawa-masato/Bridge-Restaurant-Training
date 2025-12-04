@@ -6,6 +6,8 @@
 
 **Live Demo:** https://bridge.three-sisters.ai/
 
+![Bridge Screenshot](screenshot/bridge.png)
+
 ---
 
 ## Pitch Deck
