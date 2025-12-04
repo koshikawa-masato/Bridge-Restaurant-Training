@@ -146,7 +146,7 @@
 
 #### TAM/SAM/SOM
 
-<img src="screenshot/diagrams/tam.png" width="250">
+<img src="screenshot/diagrams/tam.png" width="400">
 
 ---
 
@@ -194,7 +194,7 @@
 
 ### 8. Why Now? / なぜ今か
 
-<img src="screenshot/diagrams/whynow.png" width="300">
+<img src="screenshot/diagrams/whynow.png" width="500">
 
 ---
 
