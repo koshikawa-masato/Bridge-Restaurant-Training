@@ -2,11 +2,119 @@
 
 **外国人飲食店スタッフ向け 日本語・接客トレーニングアプリ**
 
-> Connecting restaurant staff with Japanese language and culture
+> 言葉の壁を0秒で壊す、飲食店の新常識
 
 **Live Demo:** https://bridge.three-sisters.ai/
 
 ![Bridge Screenshot](screenshot/bridge.png)
+
+---
+
+## 新コンセプト
+
+### タグライン
+> **「言葉の壁を0秒で壊す」**
+
+### ポジショニング
+「Bridge」は単なる翻訳アプリではなく、飲食店専用の「通訳＋秘書」。
+- 翻訳アプリ → 調べる（数秒〜数十秒）
+- Bridge → 画面を見せる or 音声再生（0秒）
+
+---
+
+## 機能一覧
+
+### 1. Quick Phrases Mode（神フレーズ20選）
+
+タップ1回で日本語フレーズを発声。外国人スタッフが最も困る場面を厳選。
+
+| カテゴリ | フレーズ例 |
+|----------|------------|
+| 呼び出し | すみません！ |
+| 会計 | お会計お願いします / カードは使えますか？ |
+| 注文 | おすすめは何ですか？ / これをください |
+| 質問 | トイレはどこですか？ |
+| アレルギー | アレルギーがあります / 辛くしないでください |
+| 挨拶 | いらっしゃいませ / ありがとうございました |
+| 接客 | 少々お待ちください / お待たせいたしました |
+
+### 2. Call Staff Mode（店員呼び出し）
+
+ワンタップで店員を呼び出し。SQLiteでリアルタイム通知。
+
+```
+お客様タップ → 店員ダッシュボードに通知 → 対応
+```
+
+### 3. Practice Mode（発音練習）
+
+音声認識で発音をチェック。正しく言えたかフィードバック。
+
+### 4. Translate Mode（リアルタイム翻訳）
+
+母語で入力 → 敬語日本語に変換 → TTS発声
+
+---
+
+## 対応言語（10言語）
+
+| 言語 | フラグ | Accept-Language |
+|------|--------|-----------------|
+| English | 🇺🇸 | en, en-US, en-GB |
+| 中文 | 🇨🇳 | zh, zh-CN, zh-TW |
+| Tiếng Việt | 🇻🇳 | vi, vi-VN |
+| नेपाली | 🇳🇵 | ne, ne-NP |
+| 한국어 | 🇰🇷 | ko, ko-KR |
+| Tagalog | 🇵🇭 | tl, fil, fil-PH |
+| Bahasa | 🇮🇩 | id, id-ID |
+| ไทย | 🇹🇭 | th, th-TH |
+| Português | 🇧🇷 | pt, pt-BR, pt-PT |
+| Español | 🇪🇸 | es, es-ES, es-MX |
+
+**自動言語判定**: ブラウザのAccept-Languageから母語を自動検出
+
+---
+
+## システム構成
+
+```mermaid
+flowchart TB
+    subgraph Customer["👤 お客様端末"]
+        QR[QRコード読取]
+        APP[Bridge App]
+    end
+
+    subgraph Staff["👨‍🍳 店員端末"]
+        DASH[Staff Dashboard]
+    end
+
+    subgraph Backend["🖥️ サーバー"]
+        STREAMLIT[Streamlit]
+        SQLITE[(SQLite DB)]
+        TTS[ElevenLabs TTS]
+        STT[Whisper STT]
+        LLM[Kimi LLM]
+    end
+
+    QR --> APP
+    APP --> STREAMLIT
+    STREAMLIT --> SQLITE
+    STREAMLIT --> TTS
+    STREAMLIT --> STT
+    STREAMLIT --> LLM
+    SQLITE --> DASH
+```
+
+---
+
+## URL設計
+
+| 用途 | URL | 説明 |
+|------|-----|------|
+| 基本 | `/?lang=en&table=5` | 言語とテーブル指定 |
+| QR用 | `/?table=5` | テーブルのみ（言語自動判定） |
+| モード指定 | `/?mode=quick` | quick/call/practice/translate |
+| ダッシュボード | Port 8504 | 店員用管理画面 |
 
 ---
 
@@ -40,15 +148,6 @@
 お客様「店員さんが何を言っているかわからない」
 ```
 
-#### 既存の解決策の限界
-
-| 方法 | 問題点 |
-|------|--------|
-| 日本語学校 | 高コスト・時間がかかる・接客特化でない |
-| OJT（現場教育） | 店長の負担大・属人化・品質ばらつき |
-| 翻訳アプリ（Google等） | 接客フレーズに最適化されていない・敬語対応弱い |
-| Duolingo等 | 汎用的・飲食店接客に特化していない |
-
 ---
 
 ### 3. Solution / 解決策
@@ -58,15 +157,22 @@
 ```mermaid
 flowchart TB
     subgraph Bridge["🍽️ Bridge"]
-        subgraph Practice["Practice Mode"]
-            P1["接客フレーズ練習"]
-            P2["発音練習（STT）"]
-            P3["文化Tips"]
+        subgraph Quick["Quick Mode"]
+            Q1["20神フレーズ"]
+            Q2["ワンタップ発声"]
         end
-        subgraph Help["Help Mode"]
-            H1["リアルタイム翻訳"]
-            H2["音声出力（TTS）"]
-            H3["緊急時サポート"]
+        subgraph Call["Call Mode"]
+            C1["店員呼び出し"]
+            C2["リアルタイム通知"]
+        end
+        subgraph Practice["Practice Mode"]
+            P1["発音練習（STT）"]
+            P2["フィードバック"]
+        end
+        subgraph Translate["Translate Mode"]
+            T1["母語→日本語"]
+            T2["敬語変換"]
+            T3["TTS発声"]
         end
     end
 
@@ -75,41 +181,9 @@ flowchart TB
     POS --> M2["注文フロー連動"]
 ```
 
-#### 主要機能
-
-| 機能 | 説明 |
-|------|------|
-| **Practice Mode** | 6カテゴリの接客フレーズを音声で練習 |
-| **Help Mode** | 困った時にリアルタイム翻訳・代理発声 |
-| **Cultural Tips** | カテゴリごとに日本文化のポイントを表示 |
-| **多言語対応** | 英語・中国語・ベトナム語・ネパール語 |
-
-#### 6カテゴリの接客フレーズ
-
-1. **挨拶** - いらっしゃいませ、こちらへどうぞ
-2. **注文** - ご注文はお決まりですか？、かしこまりました
-3. **料理提供** - お待たせいたしました、ごゆっくりどうぞ
-4. **会計** - お会計は○○円です、○○円のお返しです
-5. **トラブル対応** - 申し訳ございません、店長を呼んでまいります
-6. **お見送り** - ありがとうございました、またのお越しを
-
 ---
 
 ### 4. Target Market / ターゲット市場
-
-#### Primary: 飲食店チェーン・多店舗展開企業
-
-| セグメント | 店舗数 | 外国人スタッフ率 |
-|------------|--------|------------------|
-| ファミレス | 約10,000店 | 15-20% |
-| 居酒屋チェーン | 約15,000店 | 20-30% |
-| ファストフード | 約20,000店 | 25-35% |
-| コンビニ（飲食含む） | 約56,000店 | 10-15% |
-
-#### Secondary: 独立系飲食店
-
-- インバウンド需要の高いエリア（東京・大阪・京都・福岡）
-- 外国人観光客の多い観光地の飲食店
 
 #### TAM/SAM/SOM
 
@@ -130,26 +204,9 @@ flowchart TB
 
 | プラン | 月額 | 内容 |
 |--------|------|------|
-| **Starter** | ¥5,000/店舗 | 基本フレーズ・3言語 |
-| **Professional** | ¥10,000/店舗 | 全機能・5言語・カスタムフレーズ |
+| **Starter** | ¥5,000/店舗 | 基本フレーズ・5言語 |
+| **Professional** | ¥10,000/店舗 | 全機能・10言語・カスタムフレーズ |
 | **Enterprise** | 要相談 | POS連携・専用サポート・API |
-
-#### 追加オプション
-
-| オプション | 料金 |
-|------------|------|
-| 言語追加（1言語） | +¥2,000/月 |
-| メニュー登録代行 | ¥50,000（初回） |
-| カスタムフレーズ作成 | ¥30,000〜 |
-| 管理者ダッシュボード | +¥5,000/月 |
-
-#### 収益シミュレーション
-
-| Year | 店舗数 | 月額単価 | 年間売上 |
-|:----:|-------:|--------:|---------:|
-| 1 | 100店舗 | ¥8,000 | **¥9,600,000** |
-| 2 | 500店舗 | ¥8,000 | **¥48,000,000** |
-| 3 | 2,000店舗 | ¥8,000 | **¥192,000,000** |
 
 ---
 
@@ -159,18 +216,10 @@ flowchart TB
 |------|:------:|:--------:|:----------:|:----------:|
 | 飲食店接客特化 | ◎ | × | × | × |
 | 敬語（keigo）対応 | ◎ | △ | △ | △ |
-| 文化Tips | ◎ | × | × | × |
+| 店員呼び出し | ◎ | × | × | × |
 | 発音練習 | ◎ | ○ | × | × |
 | リアルタイム翻訳 | ◎ | × | ◎ | ◎ |
 | POS連携（構想） | ◎ | × | × | × |
-| 導入コスト | 低 | 低 | 無料 | 中（端末購入） |
-
-#### 技術的優位性
-
-- **ElevenLabs TTS**: 自然な日本語発音
-- **OpenAI Whisper STT**: 高精度な音声認識
-- **LLM翻訳**: 敬語・接客用語に最適化
-- **POS連携構想**: 既存POS基盤との統合
 
 ---
 
@@ -184,60 +233,26 @@ gantt
         MVP開発・公開           :done, 2024-10, 2024-12
         基本フレーズ6カテゴリ    :done, 2024-10, 2024-12
         4言語対応               :done, 2024-11, 2024-12
-        Cultural Tips機能       :done, 2024-11, 2024-12
     section 2025 Q1
-        実店舗パイロットテスト   :2025-01, 2025-03
-        ユーザーフィードバック   :2025-01, 2025-03
-        UI/UX改善              :2025-02, 2025-03
-        追加言語対応            :2025-02, 2025-03
+        20神フレーズ拡張         :done, 2025-01, 2025-01
+        10言語対応              :done, 2025-01, 2025-01
+        店員呼び出し機能         :done, 2025-01, 2025-01
+        店員ダッシュボード       :done, 2025-01, 2025-01
     section 2025 Q2
-        SaaS化                 :2025-04, 2025-06
-        管理者ダッシュボード     :2025-04, 2025-06
-        学習進捗トラッキング     :2025-05, 2025-06
-        チェーン向けセールス     :2025-05, 2025-06
+        実店舗パイロットテスト   :2025-04, 2025-06
+        ユーザーフィードバック   :2025-04, 2025-06
+        UI/UX改善              :2025-05, 2025-06
     section 2025 Q3
-        POS連携                :2025-07, 2025-09
-        カスタムフレーズ機能     :2025-07, 2025-09
-        100店舗導入達成         :milestone, 2025-09, 0d
+        SaaS化                 :2025-07, 2025-09
+        管理者ダッシュボード     :2025-07, 2025-09
+        POS連携                :2025-08, 2025-09
     section 2025 Q4
-        インバウンド対応版       :2025-10, 2025-12
-        ホテル・小売展開        :2025-10, 2025-12
-        海外展開検討            :2025-11, 2025-12
+        100店舗導入達成         :milestone, 2025-12, 0d
 ```
 
 ---
 
-### 8. Team / チーム
-
-#### 開発者
-
-**越川 将人 / Masato Koshikawa**
-
-- Python 8年 / AI・LLM開発 1年
-- 4つのAIプロダクトを個人で設計・実装・運用
-- RAG/マルチエージェント/音声AI実装経験
-- 「悔しさをプロダクトに変える」開発姿勢
-
-#### ポートフォリオ
-
-| プロダクト | URL |
-|------------|-----|
-| AI VTuber (LINE Bot) | [GitHub](https://github.com/koshikawa-masato/AI-Vtuber-Project) |
-| Sisters-On-WhatsApp | [GitHub](https://github.com/koshikawa-masato/Sisters-On-WhatsApp) |
-| Sisters-Multilingual-Coach | https://coach.three-sisters.ai/ |
-| Kuroko Interview | https://kuroko.three-sisters.ai/ |
-
-#### 求めているリソース
-
-| リソース | 目的 |
-|----------|------|
-| 飲食店パートナー | パイロットテスト実施 |
-| 営業・BD担当 | チェーン展開のセールス |
-| 資金調達（シード） | 開発加速・マーケティング |
-
----
-
-### 9. Why Now? / なぜ今か
+### 8. Why Now? / なぜ今か
 
 ```mermaid
 flowchart TB
@@ -265,16 +280,6 @@ flowchart TB
 
 ---
 
-### 10. Contact / お問い合わせ
-
-**Bridge - Restaurant Staff Japanese Training**
-
-- **Demo:** https://bridge.three-sisters.ai/
-- **Developer:** Masato Koshikawa
-- **GitHub:** [koshikawa-masato](https://github.com/koshikawa-masato)
-
----
-
 ## Technical Stack
 
 | Component | Technology |
@@ -283,8 +288,11 @@ flowchart TB
 | TTS | ElevenLabs API |
 | STT | OpenAI Whisper |
 | LLM | Kimi API |
+| Database | SQLite |
 | Hosting | XServer VPS |
 | SSL | Cloudflare |
+
+---
 
 ## Local Development
 
@@ -302,9 +310,24 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your API keys
 
-# Run
+# Run main app
 streamlit run src/app.py
+
+# Run staff dashboard (別ターミナル)
+streamlit run src/dashboard.py --server.port 8504
 ```
+
+---
+
+## Contact
+
+**Bridge - Restaurant Staff Japanese Training**
+
+- **Demo:** https://bridge.three-sisters.ai/
+- **Developer:** Masato Koshikawa
+- **GitHub:** [koshikawa-masato](https://github.com/koshikawa-masato)
+
+---
 
 ## License
 
@@ -313,3 +336,4 @@ MIT License
 ---
 
 *Built with passion to bridge the gap between cultures.*
+*言葉の壁を0秒で壊す。*
