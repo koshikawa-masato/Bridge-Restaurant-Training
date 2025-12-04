@@ -212,6 +212,71 @@
 
 ---
 
+## Development Notes / 開発ノート
+
+### 苦労した点・解決策
+
+#### 1. Streamlit の二重レンダリング問題
+
+**問題**: `st.columns()` 内でボタンを押すと、UIが二重に表示されるバグが発生。
+
+**原因**: Streamlitはボタン押下時に全体を再レンダリングする。`st.columns()` と `session_state` の組み合わせで、古い状態と新しい状態が同時に描画されることがあった。
+
+**解決策**:
+- `st.columns()` を削除してシンプルな縦並びレイアウトに変更
+- ボタンに一意の `key` を付与
+- モード切替時に `session_state` を明示的にクリア
+
+```python
+# Before: st.columns() で二重表示バグ
+col1, col2 = st.columns([2, 1])
+with col2:
+    if st.button("Listen"):
+        st.audio(audio_data, autoplay=True)  # 二重表示
+
+# After: シンプルな構造で解決
+if st.button("Listen", key="listen_btn"):
+    st.session_state.audio = audio_data
+if st.session_state.get("audio"):
+    st.audio(st.session_state.audio)
+```
+
+#### 2. TTS（ElevenLabs）の漢字読み間違い
+
+**問題**: 「辛くしないでください」を TTS が「つらく」と読んでしまう。
+
+**原因**: 「辛」は「からい（spicy）」と「つらい（painful）」の2つの読み方があり、ElevenLabsのTTSが文脈から正しく判断できなかった。
+
+**解決策**: 漢字をひらがなに変更
+
+```python
+# Before: 漢字で読み間違い
+{"ja": "辛くしないでください", ...}  # → 「つらく」と発音
+
+# After: ひらがなで正確に発音
+{"ja": "からくしないでください", ...}  # → 「からく」と発音
+```
+
+**教訓**: 日本語TTSでは、読み方が複数ある漢字はひらがなで記述するのが安全。
+
+#### 3. ElevenLabs SDK のメソッドシグネチャ変更
+
+**問題**: `generate_speech(text, voice_id=...)` でエラー発生。
+
+**原因**: Sisters-Multilingual-Coach からコードを移植した際、TTSクラスのメソッドシグネチャが異なっていた。
+
+**解決策**: `voice_id` パラメータを追加し、直接指定も可能に
+
+```python
+def generate_speech(self, text, sister="Botan", voice_id=None):
+    if voice_id:
+        resolved_voice_id = voice_id
+    else:
+        resolved_voice_id = self.voice_ids.get(sister)
+```
+
+---
+
 ## Local Development
 
 ```bash
