@@ -44,23 +44,7 @@
 
 #### 動作フロー
 
-```mermaid
-sequenceDiagram
-    participant C as 👤 お客様
-    participant A as 📱 Bridge App
-    participant DB as 🗄️ SQLite
-    participant D as 📊 Dashboard
-    participant S as 👨‍🍳 店員
-
-    C->>A: 「すみません」ボタンをタップ
-    A->>DB: 呼び出し記録を保存
-    A->>C: ✅ 通知完了メッセージ
-    D->>DB: 10秒ごとにポーリング
-    DB->>D: 未対応の呼び出しを返す
-    D->>S: 🔔 通知表示
-    S->>D: 「対応済み」ボタンをクリック
-    D->>DB: ステータスを更新
-```
+![Call Staff Flow](screenshot/diagrams/callflow.png)
 
 #### Step 1: お客様が「すみません」ボタンをタップ
 
@@ -101,33 +85,7 @@ sequenceDiagram
 
 ## システム構成
 
-```mermaid
-flowchart TB
-    subgraph Customer["👤 お客様端末"]
-        QR[QRコード読取]
-        APP[Bridge App]
-    end
-
-    subgraph Staff["👨‍🍳 店員端末"]
-        DASH[Staff Dashboard]
-    end
-
-    subgraph Backend["🖥️ サーバー"]
-        STREAMLIT[Streamlit]
-        SQLITE[(SQLite DB)]
-        TTS[ElevenLabs TTS]
-        STT[Whisper STT]
-        LLM[Kimi LLM]
-    end
-
-    QR --> APP
-    APP --> STREAMLIT
-    STREAMLIT --> SQLITE
-    STREAMLIT --> TTS
-    STREAMLIT --> STT
-    STREAMLIT --> LLM
-    SQLITE --> DASH
-```
+![System Architecture](screenshot/diagrams/system.png)
 
 ---
 
@@ -178,32 +136,7 @@ flowchart TB
 
 #### Bridge - 飲食店接客に特化したAI語学トレーニング
 
-```mermaid
-flowchart TB
-    subgraph Bridge["🍽️ Bridge"]
-        subgraph Quick["Quick Mode"]
-            Q1["20基本フレーズ"]
-            Q2["ワンタップ発声"]
-        end
-        subgraph Call["Call Mode"]
-            C1["店員呼び出し"]
-            C2["リアルタイム通知"]
-        end
-        subgraph Practice["Practice Mode"]
-            P1["発音練習（STT）"]
-            P2["フィードバック"]
-        end
-        subgraph Translate["Translate Mode"]
-            T1["母語→日本語"]
-            T2["敬語変換"]
-            T3["TTS発声"]
-        end
-    end
-
-    Bridge --> POS["🔗 POS連携構想"]
-    POS --> M1["メニュー用語同期"]
-    POS --> M2["注文フロー連動"]
-```
+![Solution Architecture](screenshot/diagrams/solution.png)
 
 ---
 
@@ -211,14 +144,7 @@ flowchart TB
 
 #### TAM/SAM/SOM
 
-```mermaid
-flowchart TB
-    TAM["🏪 TAM: 約60万店舗<br/>国内飲食店全体"]
-    SAM["👥 SAM: 約10万店舗<br/>外国人スタッフ雇用店"]
-    SOM["🎯 SOM: 1,000店舗<br/>初期ターゲット（大手チェーン3-5社）"]
-
-    TAM --> SAM --> SOM
-```
+![TAM SAM SOM](screenshot/diagrams/tam.png)
 
 ---
 
@@ -266,29 +192,7 @@ flowchart TB
 
 ### 8. Why Now? / なぜ今か
 
-```mermaid
-flowchart TB
-    subgraph A["📋 2024年問題"]
-        A1["特定技能2号の対象拡大"]
-        A2["外国人労働者の長期滞在化"]
-        A3["教育投資の必要性増大"]
-    end
-
-    subgraph B["🤖 AI技術の成熟"]
-        B1["LLM/TTS/STTの品質向上"]
-        B2["API化による低コスト利用"]
-        B3["リアルタイム処理が現実的に"]
-    end
-
-    subgraph C["📈 市場ニーズ"]
-        C1["飲食店の人手不足深刻化（80%）"]
-        C2["外国人スタッフ教育コストの負担"]
-        C3["既存ソリューションの不在"]
-    end
-
-    A --> B --> C
-    C --> D["🚀 Bridge"]
-```
+![Why Now](screenshot/diagrams/whynow.png)
 
 ---
 

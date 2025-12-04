@@ -1,0 +1,24 @@
+flowchart TB
+    subgraph Bridge["🍽️ Bridge"]
+        subgraph Quick["Quick Mode"]
+            Q1["20基本フレーズ"]
+            Q2["ワンタップ発声"]
+        end
+        subgraph Call["Call Mode"]
+            C1["店員呼び出し"]
+            C2["リアルタイム通知"]
+        end
+        subgraph Practice["Practice Mode"]
+            P1["発音練習（STT）"]
+            P2["フィードバック"]
+        end
+        subgraph Translate["Translate Mode"]
+            T1["母語→日本語"]
+            T2["敬語変換"]
+            T3["TTS発声"]
+        end
+    end
+
+    Bridge --> POS["🔗 POS連携構想"]
+    POS --> M1["メニュー用語同期"]
+    POS --> M2["注文フロー連動"]

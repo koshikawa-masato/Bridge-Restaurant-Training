@@ -1,0 +1,25 @@
+flowchart TB
+    subgraph Customer["👤 お客様端末"]
+        QR[QRコード読取]
+        APP[Bridge App]
+    end
+
+    subgraph Staff["👨‍🍳 店員端末"]
+        DASH[Staff Dashboard]
+    end
+
+    subgraph Backend["🖥️ サーバー"]
+        STREAMLIT[Streamlit]
+        SQLITE[(SQLite DB)]
+        TTS[ElevenLabs TTS]
+        STT[Whisper STT]
+        LLM[Kimi LLM]
+    end
+
+    QR --> APP
+    APP --> STREAMLIT
+    STREAMLIT --> SQLITE
+    STREAMLIT --> TTS
+    STREAMLIT --> STT
+    STREAMLIT --> LLM
+    SQLITE --> DASH
