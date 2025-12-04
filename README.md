@@ -144,7 +144,7 @@
 
 #### TAM/SAM/SOM
 
-<img src="screenshot/diagrams/tam.png" width="400">
+<img src="screenshot/diagrams/tam.png" width="250">
 
 ---
 
