@@ -246,6 +246,12 @@ st.sidebar.markdown("### 🍽️ Bridge")
 st.sidebar.markdown("外国人対応AIアプリ")
 st.sidebar.markdown("[← お客様向けアプリ](https://bridge.three-sisters.ai/)")
 
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🧪 テスト用")
+st.sidebar.markdown("[🙋 呼び出しテスト](https://bridge.three-sisters.ai/?mode=call&table=TEST)")
+st.sidebar.markdown("[⚡ クイックフレーズ](https://bridge.three-sisters.ai/?mode=quick&table=TEST)")
+st.sidebar.markdown("[🌐 翻訳テスト](https://bridge.three-sisters.ai/?mode=translate&table=TEST)")
+
 # Auto-refresh
 if auto_refresh:
     time.sleep(10)
