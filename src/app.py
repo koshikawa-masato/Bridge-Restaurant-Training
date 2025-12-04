@@ -105,7 +105,7 @@ def get_stt():
     return WhisperSTT()
 
 # ===========================================
-# 20 Essential Restaurant Phrases (神フレーズ)
+# 20 Essential Restaurant Phrases (基本フレーズ)
 # ===========================================
 QUICK_PHRASES = [
     # Customer Call (お客様用)
@@ -269,7 +269,7 @@ def init_session_state():
         st.session_state.lang = params["lang"]
     if "table" in params:
         st.session_state.table_id = params["table"]
-    if "mode" in params:
+    if "mode" in params and params["mode"] in ["quick", "call", "practice", "translate"]:
         st.session_state.mode = params["mode"]
 
 init_session_state()
@@ -368,7 +368,7 @@ st.title(get_ui("app_title"))
 
 if st.session_state.mode == "quick":
     # ===========================================
-    # Quick Phrases Mode (20神フレーズ)
+    # Quick Phrases Mode (20基本フレーズ)
     # ===========================================
     st.info(f"⚡ {get_ui('mode_quick')} - Tap to speak instantly!")
 
@@ -587,6 +587,6 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #666; font-size: 0.8em;">
     Bridge for Restaurants - 言葉の壁を0秒で壊す<br>
-    <a href="?mode=dashboard" target="_blank">Staff Dashboard</a>
+    <a href="/dashboard/" target="_blank">Staff Dashboard</a>
 </div>
 """, unsafe_allow_html=True)
