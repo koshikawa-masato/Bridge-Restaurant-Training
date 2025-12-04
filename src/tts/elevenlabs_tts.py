@@ -41,7 +41,8 @@ class ElevenLabsTTS:
         self,
         text: str,
         sister: str = "Botan",
-        output_path: Optional[str] = None
+        output_path: Optional[str] = None,
+        voice_id: Optional[str] = None
     ) -> bytes:
         """
         Generate speech from text using ElevenLabs
@@ -50,16 +51,20 @@ class ElevenLabsTTS:
             text: Text to convert to speech
             sister: Which sister's voice to use (Botan, Kasho, Yuri)
             output_path: Optional path to save audio file
+            voice_id: Direct voice ID (overrides sister if provided)
 
         Returns:
             Audio data as bytes
         """
-        voice_id = self.voice_ids.get(sister, self.voice_ids["Botan"])
-        print(f"[TTS] Sister: {sister}, Voice ID: {voice_id}")  # Debug
+        if voice_id:
+            resolved_voice_id = voice_id
+        else:
+            resolved_voice_id = self.voice_ids.get(sister, self.voice_ids["Botan"])
+        print(f"[TTS] Sister: {sister}, Voice ID: {resolved_voice_id}")  # Debug
 
         # Generate audio using new SDK API
         audio_generator = self.client.text_to_speech.convert(
-            voice_id=voice_id,
+            voice_id=resolved_voice_id,
             text=text,
             model_id=self.model,
             voice_settings={

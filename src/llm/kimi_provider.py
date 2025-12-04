@@ -22,6 +22,27 @@ class KimiLLM:
         )
         self.model = os.getenv("KIMI_MODEL", "moonshot-v1-8k")
 
+    def generate(self, prompt: str, system_prompt: str = "You are a helpful assistant.") -> str:
+        """
+        Generic text generation method.
+
+        Args:
+            prompt: User prompt
+            system_prompt: System instruction
+
+        Returns:
+            Generated text response
+        """
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3
+        )
+        return response.choices[0].message.content
+
     def correct_writing(self, native_text: str, target_text: str, native_lang: str = "日本語", target_lang: str = "English") -> dict:
         """
         Correct user's writing in target language based on native language intent.

@@ -127,7 +127,7 @@ QUICK_PHRASES = [
      "en": "Menu please", "zh": "请给我菜单", "vi": "Cho tôi menu", "ne": "मेनु दिनुहोस्"},
     {"ja": "アレルギーがあります", "romaji": "Arerugii ga arimasu", "icon": "⚠️", "category": "allergy",
      "en": "I have allergies", "zh": "我有过敏", "vi": "Tôi bị dị ứng", "ne": "मलाई एलर्जी छ"},
-    {"ja": "辛くしないでください", "romaji": "Karaku shinaide kudasai", "icon": "🌶️", "category": "order",
+    {"ja": "からくしないでください", "romaji": "Karaku shinaide kudasai", "icon": "🌶️", "category": "order",
      "en": "Not spicy please", "zh": "请不要辣", "vi": "Đừng cay", "ne": "पिरो नबनाउनुहोस्"},
     # Staff Phrases (スタッフ用)
     {"ja": "いらっしゃいませ", "romaji": "Irasshaimase", "icon": "🙇", "category": "greeting",
@@ -257,6 +257,7 @@ def init_session_state():
         "mode": "quick",  # quick, call, practice, translate
         "audio_data": None,
         "selected_phrase": None,
+        "practice_audio": None,
         "translation_result": None,
     }
     for key, value in defaults.items():
@@ -361,6 +362,10 @@ with st.sidebar:
     if selected_mode != st.session_state.mode:
         st.session_state.mode = selected_mode
         st.query_params["mode"] = selected_mode
+        # Clear mode-specific state
+        st.session_state.selected_phrase = None
+        st.session_state.audio_data = None
+        st.session_state.practice_audio = None
         st.rerun()
 
 # Main content
@@ -372,31 +377,20 @@ if st.session_state.mode == "quick":
     # ===========================================
     st.info(f"⚡ {get_ui('mode_quick')} - Tap to speak instantly!")
 
-    # Group phrases by category
-    categories = {}
+    # Display all phrases as uniform buttons (1 column, 20 rows)
     for phrase in QUICK_PHRASES:
-        cat = phrase["category"]
-        if cat not in categories:
-            categories[cat] = []
-        categories[cat].append(phrase)
-
-    # Display phrases in grid
-    for cat_name, phrases in categories.items():
-        cols = st.columns(min(len(phrases), 4))
-        for i, phrase in enumerate(phrases):
-            with cols[i % 4]:
-                btn_label = f"{phrase['icon']} {get_phrase_translation(phrase, st.session_state.lang)}"
-                if st.button(btn_label, key=f"phrase_{phrase['ja']}", use_container_width=True):
-                    st.session_state.selected_phrase = phrase
-                    log_usage("phrase_tap", phrase["ja"], cat_name, st.session_state.lang, st.session_state.table_id)
-                    # Generate TTS
-                    try:
-                        tts = get_tts()
-                        audio_data = tts.generate_speech(phrase['ja'], voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
-                        if audio_data:
-                            st.session_state.audio_data = audio_data
-                    except Exception as e:
-                        st.error(f"TTS Error: {e}")
+        btn_label = f"{phrase['icon']} {get_phrase_translation(phrase, st.session_state.lang)}"
+        if st.button(btn_label, key=f"phrase_{phrase['ja']}", use_container_width=True):
+            st.session_state.selected_phrase = phrase
+            log_usage("phrase_tap", phrase["ja"], phrase["category"], st.session_state.lang, st.session_state.table_id)
+            # Generate TTS
+            try:
+                tts = get_tts()
+                audio_data = tts.generate_speech(phrase['ja'], voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
+                if audio_data:
+                    st.session_state.audio_data = audio_data
+            except Exception as e:
+                st.error(f"TTS Error: {e}")
 
     # Show selected phrase details
     if st.session_state.selected_phrase:
@@ -478,27 +472,42 @@ elif st.session_state.mode == "practice":
 
     selected_phrase = next((p for p in QUICK_PHRASES if p['ja'] == selected_ja), None)
 
+    # Auto-generate audio when phrase changes
+    if "last_practice_phrase" not in st.session_state:
+        st.session_state.last_practice_phrase = None
+    if st.session_state.last_practice_phrase != selected_ja:
+        st.session_state.last_practice_phrase = selected_ja
+        # Generate new audio automatically
+        try:
+            tts = get_tts()
+            audio_data = tts.generate_speech(selected_ja, voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
+            if audio_data:
+                st.session_state.practice_audio = audio_data
+        except:
+            st.session_state.practice_audio = None
+
     if selected_phrase:
-        col1, col2 = st.columns([2, 1])
+        # Phrase card
+        st.markdown(f"""
+        ### 🇯🇵 {selected_phrase['ja']}
+        **Romaji:** {selected_phrase['romaji']}
 
-        with col1:
-            st.markdown(f"""
-            ### 🇯🇵 {selected_phrase['ja']}
-            **Romaji:** {selected_phrase['romaji']}
+        **{LANGUAGES[st.session_state.lang]['flag']} {get_phrase_translation(selected_phrase, st.session_state.lang)}**
+        """)
 
-            **{LANGUAGES[st.session_state.lang]['flag']} {get_phrase_translation(selected_phrase, st.session_state.lang)}**
-            """)
+        # Listen button and audio player
+        if st.button(f"🔊 {get_ui('listen')}", key="practice_listen_btn", use_container_width=True):
+            try:
+                tts = get_tts()
+                audio_data = tts.generate_speech(selected_phrase['ja'], voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
+                if audio_data:
+                    st.session_state.practice_audio = audio_data
+                    log_usage("listen", selected_phrase['ja'], selected_phrase['category'], st.session_state.lang)
+            except Exception as e:
+                st.error(f"TTS Error: {e}")
 
-        with col2:
-            if st.button(f"🔊 {get_ui('listen')}", use_container_width=True):
-                try:
-                    tts = get_tts()
-                    audio_data = tts.generate_speech(selected_phrase['ja'], voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
-                    if audio_data:
-                        st.audio(audio_data, format="audio/mp3", autoplay=True)
-                        log_usage("listen", selected_phrase['ja'], selected_phrase['category'], st.session_state.lang)
-                except Exception as e:
-                    st.error(f"TTS Error: {e}")
+        if st.session_state.get("practice_audio"):
+            st.audio(st.session_state.practice_audio, format="audio/mp3")
 
         st.divider()
 
@@ -536,32 +545,37 @@ elif st.session_state.mode == "translate":
         height=100
     )
 
-    col1, col2 = st.columns(2)
+    if st.button(f"🔄 {get_ui('translate')}", key="translate_btn", use_container_width=True, type="primary"):
+        if user_input:
+            try:
+                kimi = get_kimi()
+                lang_name = LANGUAGES[st.session_state.lang]["name"]
 
-    with col1:
-        if st.button(f"🔄 {get_ui('translate')}", use_container_width=True, type="primary"):
-            if user_input:
-                try:
-                    kimi = get_kimi()
-                    lang_name = LANGUAGES[st.session_state.lang]["name"]
-
-                    prompt = f"""Translate to polite Japanese (keigo) for restaurant use:
+                prompt = f"""Translate to polite Japanese (keigo) for restaurant use:
 Input ({lang_name}): {user_input}
 
 Respond in JSON: {{"japanese": "...", "romaji": "...", "explanation": "brief {lang_name} explanation"}}"""
 
-                    response = kimi.generate(prompt, system_prompt="You are a Japanese restaurant language expert. Respond only in valid JSON.")
+                response = kimi.generate(prompt, system_prompt="You are a Japanese restaurant language expert. Respond only in valid JSON.")
 
-                    import re
-                    json_match = re.search(r'\{[^}]+\}', response, re.DOTALL)
-                    if json_match:
-                        result = json.loads(json_match.group())
-                        st.session_state.translation_result = result
-                        log_usage("translate", result.get("japanese"), "translate", st.session_state.lang, st.session_state.table_id)
-                except Exception as e:
-                    st.error(f"Translation Error: {e}")
+                import re
+                json_match = re.search(r'\{[^}]+\}', response, re.DOTALL)
+                if json_match:
+                    result = json.loads(json_match.group())
+                    st.session_state.translation_result = result
+                    log_usage("translate", result.get("japanese"), "translate", st.session_state.lang, st.session_state.table_id)
+                    # Auto-generate audio after translation
+                    try:
+                        tts = get_tts()
+                        audio_data = tts.generate_speech(result.get('japanese', ''), voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
+                        if audio_data:
+                            st.session_state.translate_audio = audio_data
+                    except:
+                        st.session_state.translate_audio = None
+            except Exception as e:
+                st.error(f"Translation Error: {e}")
 
-    if st.session_state.translation_result:
+    if st.session_state.get("translation_result"):
         result = st.session_state.translation_result
         st.divider()
 
@@ -572,15 +586,17 @@ Respond in JSON: {{"japanese": "...", "romaji": "...", "explanation": "brief {la
         *{result.get('explanation', '')}*
         """)
 
-        with col2:
-            if st.button(f"🔊 Speak", use_container_width=True):
-                try:
-                    tts = get_tts()
-                    audio_data = tts.generate_speech(result.get('japanese', ''), voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
-                    if audio_data:
-                        st.audio(audio_data, format="audio/mp3", autoplay=True)
-                except Exception as e:
-                    st.error(f"TTS Error: {e}")
+        if st.button(f"🔊 Speak", key="translate_speak_btn", use_container_width=True):
+            try:
+                tts = get_tts()
+                audio_data = tts.generate_speech(result.get('japanese', ''), voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
+                if audio_data:
+                    st.session_state.translate_audio = audio_data
+            except Exception as e:
+                st.error(f"TTS Error: {e}")
+
+        if st.session_state.get("translate_audio"):
+            st.audio(st.session_state.translate_audio, format="audio/mp3")
 
 # Footer
 st.markdown("---")
