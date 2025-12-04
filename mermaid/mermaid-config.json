@@ -1,4 +1,9 @@
 {
-  "theme": "default",
-  "themeCSS": "* { font-family: 'Noto Color Emoji', 'Noto Sans JP', sans-serif !important; }"
+  "theme": "base",
+  "themeVariables": {
+    "background": "#ffffff",
+    "mainBkg": "#ffffff",
+    "subgraph0Bkg": "#ffffff",
+    "subgraph1Bkg": "#ffffff"
+  }
 }
