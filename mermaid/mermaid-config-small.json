@@ -1,8 +1,0 @@
-{
-  "theme": "default",
-  "flowchart": {
-    "padding": 100,
-    "nodeSpacing": 30,
-    "rankSpacing": 30
-  }
-}

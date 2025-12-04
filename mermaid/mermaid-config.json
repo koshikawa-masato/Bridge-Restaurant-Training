@@ -1,9 +1,0 @@
-{
-  "theme": "base",
-  "themeVariables": {
-    "background": "#ffffff",
-    "mainBkg": "#ffffff",
-    "subgraph0Bkg": "#ffffff",
-    "subgraph1Bkg": "#ffffff"
-  }
-}
