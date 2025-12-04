@@ -269,7 +269,7 @@ def init_session_state():
         st.session_state.lang = params["lang"]
     if "table" in params:
         st.session_state.table_id = params["table"]
-    if "mode" in params and params["mode"] in ["quick", "call", "practice", "translate"]:
+    if "mode" in params:
         st.session_state.mode = params["mode"]
 
 init_session_state()
