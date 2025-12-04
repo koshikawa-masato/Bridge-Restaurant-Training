@@ -1,1 +1,60 @@
+# ===========================================
+# Bridge-Restaurant-Training .gitignore
+# ===========================================
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Deployment scripts (contain server paths)
+scripts/
+*.sh
+
+# Internal documentation
+CLAUDE.md
+
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Prompts (if any)
+prompts/
+
+# Temporary
+*.tmp
+*.temp
+/tmp/
+
+# Claude Code
+.claude/

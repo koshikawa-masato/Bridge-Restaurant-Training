@@ -18,9 +18,6 @@ load_dotenv()
 DB_PATH = Path(__file__).parent.parent / "data" / "bridge.db"
 DB_PATH.parent.mkdir(exist_ok=True)
 
-# Audio cache path
-AUDIO_CACHE_DIR = Path(__file__).parent.parent / "audio"
-
 # Page config
 st.set_page_config(
     page_title="Bridge for Restaurants",
@@ -101,15 +98,6 @@ def get_kimi():
 def get_tts():
     from tts import ElevenLabsTTS
     return ElevenLabsTTS()
-
-def get_cached_audio(phrase_ja: str) -> bytes:
-    """Get cached audio file for a phrase (offline support)"""
-    safe_name = phrase_ja.replace('！', '').replace('？', '').replace('、', '_')
-    audio_path = AUDIO_CACHE_DIR / f"{safe_name}.mp3"
-    if audio_path.exists():
-        with open(audio_path, 'rb') as f:
-            return f.read()
-    return None
 
 @st.cache_resource
 def get_stt():
@@ -401,19 +389,14 @@ if st.session_state.mode == "quick":
                 if st.button(btn_label, key=f"phrase_{phrase['ja']}", use_container_width=True):
                     st.session_state.selected_phrase = phrase
                     log_usage("phrase_tap", phrase["ja"], cat_name, st.session_state.lang, st.session_state.table_id)
-                    # Try cached audio first (offline support)
-                    audio_data = get_cached_audio(phrase['ja'])
-                    if audio_data:
-                        st.session_state.audio_data = audio_data
-                    else:
-                        # Fallback to TTS API
-                        try:
-                            tts = get_tts()
-                            audio_data = tts.generate_speech(phrase['ja'], sister="User")
-                            if audio_data:
-                                st.session_state.audio_data = audio_data
-                        except Exception as e:
-                            st.error(f"TTS Error: {e}")
+                    # Generate TTS
+                    try:
+                        tts = get_tts()
+                        audio_data = tts.generate_speech(phrase['ja'], voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
+                        if audio_data:
+                            st.session_state.audio_data = audio_data
+                    except Exception as e:
+                        st.error(f"TTS Error: {e}")
 
     # Show selected phrase details
     if st.session_state.selected_phrase:
@@ -450,7 +433,7 @@ elif st.session_state.mode == "call":
                 # Play TTS
                 try:
                     tts = get_tts()
-                    audio_data = tts.generate_speech("すみません！", sister="User")
+                    audio_data = tts.generate_speech("すみません！", voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
                     if audio_data:
                         st.audio(audio_data, format="audio/mp3", autoplay=True)
                 except:
@@ -510,7 +493,7 @@ elif st.session_state.mode == "practice":
             if st.button(f"🔊 {get_ui('listen')}", use_container_width=True):
                 try:
                     tts = get_tts()
-                    audio_data = tts.generate_speech(selected_phrase['ja'], sister="User")
+                    audio_data = tts.generate_speech(selected_phrase['ja'], voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
                     if audio_data:
                         st.audio(audio_data, format="audio/mp3", autoplay=True)
                         log_usage("listen", selected_phrase['ja'], selected_phrase['category'], st.session_state.lang)
@@ -593,7 +576,7 @@ Respond in JSON: {{"japanese": "...", "romaji": "...", "explanation": "brief {la
             if st.button(f"🔊 Speak", use_container_width=True):
                 try:
                     tts = get_tts()
-                    audio_data = tts.generate_speech(result.get('japanese', ''), sister="User")
+                    audio_data = tts.generate_speech(result.get('japanese', ''), voice_id=os.getenv("ELEVENLABS_VOICE_ID_USER"))
                     if audio_data:
                         st.audio(audio_data, format="audio/mp3", autoplay=True)
                 except Exception as e:
